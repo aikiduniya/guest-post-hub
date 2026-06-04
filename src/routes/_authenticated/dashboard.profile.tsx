@@ -15,7 +15,7 @@ function Profile() {
   const save = useServerFn(updateMyProfile);
   const { data: profile } = useQuery({ queryKey: ["my-profile"], queryFn: () => fetchProfile() });
   const m = useMutation({
-    mutationFn: (d: Parameters<typeof save>[0]["data"]) => save({ data: d }),
+    mutationFn: (d: { full_name?: string; company?: string; website?: string }) => save({ data: d }),
     onSuccess: () => toast.success("Profile saved"),
     onError: (e: Error) => toast.error(e.message),
   });

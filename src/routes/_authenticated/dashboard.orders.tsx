@@ -22,7 +22,14 @@ function OrdersPage() {
   const [open, setOpen] = useState(false);
 
   const m = useMutation({
-    mutationFn: (d: Parameters<typeof create>[0]["data"]) => create({ data: d }),
+    mutationFn: (d: {
+      service_id: string;
+      service_name: string;
+      target_url: string;
+      anchor_text?: string;
+      notes?: string;
+      price: number;
+    }) => create({ data: d }),
     onSuccess: () => {
       toast.success("Order created");
       qc.invalidateQueries({ queryKey: ["my-orders"] });
