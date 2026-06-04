@@ -20,10 +20,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
-import { Route as AuthenticatedDashboardProfileRouteImport } from './routes/_authenticated/dashboard.profile'
-import { Route as AuthenticatedDashboardOrdersRouteImport } from './routes/_authenticated/dashboard.orders'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminServicesRouteImport } from './routes/_authenticated/admin.services'
 import { Route as AuthenticatedAdminPostsRouteImport } from './routes/_authenticated/admin.posts'
@@ -83,29 +80,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedDashboardIndexRoute =
-  AuthenticatedDashboardIndexRouteImport.update({
-    id: '/dashboard/',
-    path: '/dashboard/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
-const AuthenticatedDashboardProfileRoute =
-  AuthenticatedDashboardProfileRouteImport.update({
-    id: '/dashboard/profile',
-    path: '/dashboard/profile',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedDashboardOrdersRoute =
-  AuthenticatedDashboardOrdersRouteImport.update({
-    id: '/dashboard/orders',
-    path: '/dashboard/orders',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
     id: '/settings',
@@ -145,10 +124,7 @@ export interface FileRoutesByFullPath {
   '/admin/posts': typeof AuthenticatedAdminPostsRoute
   '/admin/services': typeof AuthenticatedAdminServicesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
-  '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
-  '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
-  '/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -164,10 +140,7 @@ export interface FileRoutesByTo {
   '/admin/posts': typeof AuthenticatedAdminPostsRoute
   '/admin/services': typeof AuthenticatedAdminServicesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
-  '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
-  '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
-  '/dashboard': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -186,10 +159,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/posts': typeof AuthenticatedAdminPostsRoute
   '/_authenticated/admin/services': typeof AuthenticatedAdminServicesRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
-  '/_authenticated/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
-  '/_authenticated/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
-  '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -208,10 +178,7 @@ export interface FileRouteTypes {
     | '/admin/posts'
     | '/admin/services'
     | '/admin/settings'
-    | '/dashboard/orders'
-    | '/dashboard/profile'
     | '/admin/'
-    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -227,10 +194,7 @@ export interface FileRouteTypes {
     | '/admin/posts'
     | '/admin/services'
     | '/admin/settings'
-    | '/dashboard/orders'
-    | '/dashboard/profile'
     | '/admin'
-    | '/dashboard'
   id:
     | '__root__'
     | '/'
@@ -248,10 +212,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/posts'
     | '/_authenticated/admin/services'
     | '/_authenticated/admin/settings'
-    | '/_authenticated/dashboard/orders'
-    | '/_authenticated/dashboard/profile'
     | '/_authenticated/admin/'
-    | '/_authenticated/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -345,33 +306,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/dashboard/': {
-      id: '/_authenticated/dashboard/'
-      path: '/dashboard'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/dashboard/profile': {
-      id: '/_authenticated/dashboard/profile'
-      path: '/dashboard/profile'
-      fullPath: '/dashboard/profile'
-      preLoaderRoute: typeof AuthenticatedDashboardProfileRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard/orders': {
-      id: '/_authenticated/dashboard/orders'
-      path: '/dashboard/orders'
-      fullPath: '/dashboard/orders'
-      preLoaderRoute: typeof AuthenticatedDashboardOrdersRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/settings': {
       id: '/_authenticated/admin/settings'
@@ -425,16 +365,10 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
-  AuthenticatedDashboardOrdersRoute: typeof AuthenticatedDashboardOrdersRoute
-  AuthenticatedDashboardProfileRoute: typeof AuthenticatedDashboardProfileRoute
-  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
-  AuthenticatedDashboardOrdersRoute: AuthenticatedDashboardOrdersRoute,
-  AuthenticatedDashboardProfileRoute: AuthenticatedDashboardProfileRoute,
-  AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

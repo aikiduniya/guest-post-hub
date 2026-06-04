@@ -67,7 +67,7 @@ const postInput = z.object({
   content: z.string().min(1).max(50000),
   category: z.string().min(1).max(50),
   tags: z.array(z.string().max(40)).max(10).default([]),
-  cover_url: z.string().max(500).optional().or(z.literal("")),
+  cover_url: z.string().max(2000).optional().or(z.literal("")),
   is_published: z.boolean(),
 });
 

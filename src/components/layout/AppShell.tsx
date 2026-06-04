@@ -2,25 +2,19 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { type ReactNode } from "react";
 import { Logo } from "@/components/layout/Logo";
 import { useAuth } from "@/lib/auth";
-import { LayoutDashboard, ShoppingBag, User, LogOut, Shield, FileText, Settings, Package } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, LogOut, FileText, Settings, Package } from "lucide-react";
 
-export function AppShell({ children, admin = false }: { children: ReactNode; admin?: boolean }) {
-  const { signOut, user, isAdmin } = useAuth();
+export function AppShell({ children }: { children: ReactNode; admin?: boolean }) {
+  const { signOut, user } = useAuth();
   const router = useRouter();
 
-  const userNav = [
-    { to: "/dashboard", label: "Overview", Icon: LayoutDashboard },
-    { to: "/dashboard/orders", label: "Orders", Icon: ShoppingBag },
-    { to: "/dashboard/profile", label: "Profile", Icon: User },
-  ];
-  const adminNav = [
+  const nav = [
     { to: "/admin", label: "Dashboard", Icon: LayoutDashboard },
     { to: "/admin/orders", label: "Orders", Icon: ShoppingBag },
     { to: "/admin/services", label: "Services", Icon: Package },
     { to: "/admin/posts", label: "Posts", Icon: FileText },
     { to: "/admin/settings", label: "Settings", Icon: Settings },
   ];
-  const nav = admin ? adminNav : userNav;
 
   return (
     <div className="min-h-screen flex bg-surface">
@@ -29,7 +23,7 @@ export function AppShell({ children, admin = false }: { children: ReactNode; adm
           <Logo className="h-7 w-auto" />
         </Link>
         <div className="text-xs font-bold uppercase tracking-widest text-sidebar-foreground/50 mb-4">
-          {admin ? "Admin" : "Account"}
+          Admin
         </div>
         <nav className="space-y-1 flex-1">
           {nav.map(({ to, label, Icon }) => (
@@ -38,27 +32,11 @@ export function AppShell({ children, admin = false }: { children: ReactNode; adm
               to={to}
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-sidebar-accent transition"
               activeProps={{ className: "bg-sidebar-accent text-white" }}
-              activeOptions={{ exact: to === "/dashboard" || to === "/admin" }}
+              activeOptions={{ exact: to === "/admin" }}
             >
               <Icon size={16} /> {label}
             </Link>
           ))}
-          {isAdmin && !admin && (
-            <Link
-              to="/admin"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-sidebar-accent transition mt-4 border-t border-sidebar-border pt-4"
-            >
-              <Shield size={16} /> Admin Panel
-            </Link>
-          )}
-          {admin && (
-            <Link
-              to="/dashboard"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-sidebar-accent transition mt-4 border-t border-sidebar-border pt-4"
-            >
-              <User size={16} /> Back to user dashboard
-            </Link>
-          )}
         </nav>
         <div className="pt-6 border-t border-sidebar-border">
           <div className="text-xs text-sidebar-foreground/60 mb-3 truncate">{user?.email}</div>

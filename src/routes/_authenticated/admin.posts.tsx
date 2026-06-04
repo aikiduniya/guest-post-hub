@@ -5,7 +5,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/layout/AppShell";
 import { adminListPosts, adminSavePost, adminDeletePost } from "@/lib/admin.functions";
-import { Plus, X, Trash2, Edit3 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Plus, X, Trash2, Edit3, Upload } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/posts")({
   head: () => ({ meta: [{ title: "Admin Posts — Accessily" }, { name: "robots", content: "noindex" }] }),
@@ -32,6 +33,37 @@ function AdminPosts() {
   const { data: posts } = useQuery({ queryKey: ["admin-posts"], queryFn: () => list() });
   const [editing, setEditing] = useState<PostRow | null>(null);
   const [open, setOpen] = useState(false);
+  const [coverUrl, setCoverUrl] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
+
+  async function uploadCover(file: File) {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB");
+      return;
+    }
+    setUploading(true);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("post-covers").upload(path, file, {
+      contentType: file.type,
+      upsert: false,
+    });
+    if (error) {
+      toast.error(error.message);
+      setUploading(false);
+      return;
+    }
+    const { data, error: sErr } = await supabase.storage
+      .from("post-covers")
+      .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+    setUploading(false);
+    if (sErr || !data) {
+      toast.error(sErr?.message || "Could not create URL");
+      return;
+    }
+    setCoverUrl(data.signedUrl);
+    toast.success("Cover uploaded");
+  }
 
   const saveM = useMutation({
     mutationFn: (d: {
@@ -65,9 +97,20 @@ function AdminPosts() {
       content: String(fd.get("content")),
       category: String(fd.get("category")),
       tags: String(fd.get("tags") || "").split(",").map((s) => s.trim()).filter(Boolean),
-      cover_url: String(fd.get("cover_url") || ""),
+      cover_url: coverUrl,
       is_published: fd.get("is_published") === "on",
     });
+  }
+
+  function openNew() {
+    setEditing(null);
+    setCoverUrl("");
+    setOpen(true);
+  }
+  function openEdit(p: PostRow) {
+    setEditing(p);
+    setCoverUrl(p.cover_url ?? "");
+    setOpen(true);
   }
 
   return (
@@ -78,7 +121,7 @@ function AdminPosts() {
           <p className="text-muted-foreground">Manage blog content.</p>
         </div>
         <button
-          onClick={() => { setEditing(null); setOpen(true); }}
+          onClick={openNew}
           className="bg-primary text-primary-foreground px-5 py-2.5 rounded-xl font-bold shadow-glow flex items-center gap-2"
         >
           <Plus size={16} /> New Post
@@ -98,7 +141,7 @@ function AdminPosts() {
               }`}>
                 {p.is_published ? "Published" : "Draft"}
               </span>
-              <button onClick={() => { setEditing(p as PostRow); setOpen(true); }} className="text-muted-foreground hover:text-primary">
+              <button onClick={() => openEdit(p as PostRow)} className="text-muted-foreground hover:text-primary">
                 <Edit3 size={16} />
               </button>
               <button onClick={() => confirm("Delete this post?") && delM.mutate(p.id)} className="text-muted-foreground hover:text-destructive">
@@ -124,7 +167,33 @@ function AdminPosts() {
                 <Field name="category" label="Category" defaultValue={editing?.category ?? "blog"} required maxLength={50} />
                 <Field name="tags" label="Tags (comma separated)" defaultValue={editing?.tags?.join(", ")} />
               </div>
-              <Field name="cover_url" label="Cover URL (optional)" defaultValue={editing?.cover_url ?? ""} />
+              <div>
+                <span className="text-sm font-semibold mb-1.5 block">Cover image</span>
+                {coverUrl && (
+                  <img src={coverUrl} alt="Cover preview" className="w-full h-40 object-cover rounded-xl border border-border mb-2" />
+                )}
+                <div className="flex items-center gap-3">
+                  <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-background text-sm font-semibold hover:bg-muted">
+                    <Upload size={14} /> {uploading ? "Uploading…" : coverUrl ? "Replace image" : "Upload image"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) uploadCover(f);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  {coverUrl && (
+                    <button type="button" onClick={() => setCoverUrl("")} className="text-xs text-muted-foreground hover:text-destructive">
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
               <TextArea name="excerpt" label="Excerpt" defaultValue={editing?.excerpt ?? ""} rows={2} maxLength={500} />
               <TextArea name="content" label="Content (markdown / text)" defaultValue={editing?.content ?? ""} rows={8} required maxLength={50000} />
               <label className="flex items-center gap-2">
