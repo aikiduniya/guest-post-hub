@@ -23,7 +23,7 @@ function AuthPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) navigate({ to: "/dashboard" });
+    if (user) navigate({ to: "/admin" });
   }, [user, navigate]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -42,7 +42,7 @@ function AuthPage() {
       const { error } = await supabase.auth.signUp({
         email: email.data,
         password: password.data,
-        options: { emailRedirectTo: `${window.location.origin}/dashboard`, data: { full_name } },
+        options: { emailRedirectTo: `${window.location.origin}/admin`, data: { full_name } },
       });
       if (error) toast.error(error.message);
       else toast.success("Account created — check your inbox if confirmation is enabled.");
@@ -54,7 +54,7 @@ function AuthPage() {
       if (error) toast.error(error.message);
       else {
         toast.success("Welcome back!");
-        navigate({ to: "/dashboard" });
+        navigate({ to: "/admin" });
       }
     }
     setLoading(false);

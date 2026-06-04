@@ -38,31 +38,20 @@ export function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          {user ? (
-            <>
-              {isAdmin && (
-                <Link
-                  to="/admin"
-                  className="text-sm font-semibold px-4 py-2 rounded-full hover:bg-muted transition"
-                >
-                  Admin
-                </Link>
-              )}
-              <Link
-                to="/dashboard"
-                className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-sm font-bold shadow-glow hover:scale-105 active:scale-95 transition"
-              >
-                Dashboard
-              </Link>
-            </>
+          {user && isAdmin ? (
+            <Link
+              to="/admin"
+              className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-sm font-bold shadow-glow hover:scale-105 active:scale-95 transition"
+            >
+              Admin
+            </Link>
           ) : (
             <>
               <Link to="/auth" className="text-sm font-semibold hover:text-primary transition">
                 Log In
               </Link>
               <Link
-                to="/auth"
-                search={{ mode: "signup" } as never}
+                to="/contact"
                 className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-sm font-bold shadow-glow hover:scale-105 active:scale-95 transition"
               >
                 Get Started
@@ -94,12 +83,12 @@ export function Header() {
               </Link>
             ))}
             <div className="flex gap-3 pt-3 border-t border-border mt-2">
-              {user ? (
+              {user && isAdmin ? (
                 <Link
-                  to="/dashboard"
+                  to="/admin"
                   className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-full text-center font-bold"
                 >
-                  Dashboard
+                  Admin
                 </Link>
               ) : (
                 <>
@@ -107,10 +96,10 @@ export function Header() {
                     Log In
                   </Link>
                   <Link
-                    to="/auth"
+                    to="/contact"
                     className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-full text-center font-bold"
                   >
-                    Sign Up
+                    Get Started
                   </Link>
                 </>
               )}
