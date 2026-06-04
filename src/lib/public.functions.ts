@@ -29,7 +29,5 @@ export const getPosts = createServerFn({ method: "GET" })
 export const getSettings = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin.from("site_settings").select("*");
-  const map: Record<string, unknown> = {};
-  (data ?? []).forEach((r) => (map[r.key] = r.value));
-  return map;
+  return data ?? [];
 });
