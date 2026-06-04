@@ -15,8 +15,13 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CaseStudiesRouteImport } from './routes/case-studies'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
+import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
+import { Route as AuthenticatedDashboardProfileRouteImport } from './routes/_authenticated/dashboard.profile'
+import { Route as AuthenticatedDashboardOrdersRouteImport } from './routes/_authenticated/dashboard.orders'
 
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
@@ -48,6 +53,15 @@ const CaseStudiesRoute = CaseStudiesRouteImport.update({
   path: '/case-studies',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -58,9 +72,28 @@ const ServicesSlugRoute = ServicesSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => ServicesRoute,
 } as any)
+const AuthenticatedDashboardIndexRoute =
+  AuthenticatedDashboardIndexRouteImport.update({
+    id: '/dashboard/',
+    path: '/dashboard/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardProfileRoute =
+  AuthenticatedDashboardProfileRouteImport.update({
+    id: '/dashboard/profile',
+    path: '/dashboard/profile',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardOrdersRoute =
+  AuthenticatedDashboardOrdersRouteImport.update({
+    id: '/dashboard/orders',
+    path: '/dashboard/orders',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/case-studies': typeof CaseStudiesRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -68,9 +101,13 @@ export interface FileRoutesByFullPath {
   '/reseller': typeof ResellerRoute
   '/services': typeof ServicesRouteWithChildren
   '/services/$slug': typeof ServicesSlugRoute
+  '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
+  '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
+  '/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/case-studies': typeof CaseStudiesRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -78,10 +115,15 @@ export interface FileRoutesByTo {
   '/reseller': typeof ResellerRoute
   '/services': typeof ServicesRouteWithChildren
   '/services/$slug': typeof ServicesSlugRoute
+  '/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
+  '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
+  '/dashboard': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/case-studies': typeof CaseStudiesRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -89,11 +131,15 @@ export interface FileRoutesById {
   '/reseller': typeof ResellerRoute
   '/services': typeof ServicesRouteWithChildren
   '/services/$slug': typeof ServicesSlugRoute
+  '/_authenticated/dashboard/orders': typeof AuthenticatedDashboardOrdersRoute
+  '/_authenticated/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
+  '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/case-studies'
     | '/contact'
     | '/faq'
@@ -101,9 +147,13 @@ export interface FileRouteTypes {
     | '/reseller'
     | '/services'
     | '/services/$slug'
+    | '/dashboard/orders'
+    | '/dashboard/profile'
+    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/case-studies'
     | '/contact'
     | '/faq'
@@ -111,9 +161,14 @@ export interface FileRouteTypes {
     | '/reseller'
     | '/services'
     | '/services/$slug'
+    | '/dashboard/orders'
+    | '/dashboard/profile'
+    | '/dashboard'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
+    | '/auth'
     | '/case-studies'
     | '/contact'
     | '/faq'
@@ -121,10 +176,15 @@ export interface FileRouteTypes {
     | '/reseller'
     | '/services'
     | '/services/$slug'
+    | '/_authenticated/dashboard/orders'
+    | '/_authenticated/dashboard/profile'
+    | '/_authenticated/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   CaseStudiesRoute: typeof CaseStudiesRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
@@ -177,6 +237,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CaseStudiesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -191,8 +265,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicesSlugRouteImport
       parentRoute: typeof ServicesRoute
     }
+    '/_authenticated/dashboard/': {
+      id: '/_authenticated/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/profile': {
+      id: '/_authenticated/dashboard/profile'
+      path: '/dashboard/profile'
+      fullPath: '/dashboard/profile'
+      preLoaderRoute: typeof AuthenticatedDashboardProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/orders': {
+      id: '/_authenticated/dashboard/orders'
+      path: '/dashboard/orders'
+      fullPath: '/dashboard/orders'
+      preLoaderRoute: typeof AuthenticatedDashboardOrdersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDashboardOrdersRoute: typeof AuthenticatedDashboardOrdersRoute
+  AuthenticatedDashboardProfileRoute: typeof AuthenticatedDashboardProfileRoute
+  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDashboardOrdersRoute: AuthenticatedDashboardOrdersRoute,
+  AuthenticatedDashboardProfileRoute: AuthenticatedDashboardProfileRoute,
+  AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface ServicesRouteChildren {
   ServicesSlugRoute: typeof ServicesSlugRoute
@@ -208,6 +318,8 @@ const ServicesRouteWithChildren = ServicesRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   CaseStudiesRoute: CaseStudiesRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
@@ -218,3 +330,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
