@@ -1,10 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-async function assertAdmin(supabase: Awaited<ReturnType<typeof requireSupabaseAuth.server>> extends never ? never : import("@supabase/supabase-js").SupabaseClient, userId: string) {
+async function assertAdmin(supabase: SupabaseClient, userId: string) {
   const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-  if (!data?.some((r) => r.role === "admin")) throw new Error("Forbidden");
+  if (!data?.some((r: { role: string }) => r.role === "admin")) throw new Error("Forbidden");
 }
 
 export const adminStats = createServerFn({ method: "GET" })
@@ -158,11 +159,11 @@ export const adminGetSettings = createServerFn({ method: "GET" })
 export const adminSaveSetting = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({ key: z.string().min(1).max(100), value: z.record(z.string(), z.unknown()) }).parse(d),
+    z.object({ key: z.string().min(1).max(100), value: z.record(z.string(), z.any()) }).parse(d),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase as never, context.userId);
-    const { error } = await context.supabase.from("site_settings").upsert({ key: data.key, value: data.value });
+    const { error } = await context.supabase.from("site_settings").upsert({ key: data.key, value: data.value as never });
     if (error) throw error;
     return { ok: true };
   });

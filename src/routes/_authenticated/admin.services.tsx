@@ -36,7 +36,11 @@ function AdminServices() {
   const [open, setOpen] = useState(false);
 
   const saveM = useMutation({
-    mutationFn: (d: Parameters<typeof save>[0]["data"]) => save({ data: d }),
+    mutationFn: (d: {
+      id?: string; slug: string; name: string; category: string; short_description: string;
+      long_description?: string; starting_price: number; features: string[]; icon?: string;
+      is_active: boolean; sort_order: number;
+    }) => save({ data: d }),
     onSuccess: () => {
       toast.success("Saved");
       qc.invalidateQueries({ queryKey: ["admin-services"] });

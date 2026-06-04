@@ -34,7 +34,10 @@ function AdminPosts() {
   const [open, setOpen] = useState(false);
 
   const saveM = useMutation({
-    mutationFn: (d: Parameters<typeof save>[0]["data"]) => save({ data: d }),
+    mutationFn: (d: {
+      id?: string; slug: string; title: string; excerpt?: string; content: string;
+      category: string; tags: string[]; cover_url?: string; is_published: boolean;
+    }) => save({ data: d }),
     onSuccess: () => {
       toast.success("Saved");
       qc.invalidateQueries({ queryKey: ["admin-posts"] });
