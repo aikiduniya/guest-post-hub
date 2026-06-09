@@ -1,0 +1,3 @@
+DELETE FROM services WHERE slug IN ('niche-edits','blogger-outreach','press-releases','local-seo');
+UPDATE services SET slug='article-writing', name='Article Writing', category='Content', short_description='High-quality SEO articles written by expert writers, ready to publish.', long_description='Get well-researched, SEO-optimized articles tailored to your niche and audience.', icon='PenTool', starting_price=49, sort_order=2 WHERE slug='content-writing';
+UPDATE services SET sort_order=1, category='Link Building' WHERE slug='guest-posts';

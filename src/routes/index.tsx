@@ -64,10 +64,10 @@ function Home() {
             </p>
             <div className="flex flex-wrap gap-4 items-center">
               <Link
-                to="/services"
+                to="/sites"
                 className="bg-accent text-accent-foreground px-8 py-4 rounded-xl font-bold text-lg shadow-glow hover:scale-105 active:scale-95 transition flex items-center gap-2"
               >
-                Browse Inventory <ArrowRight size={18} />
+                Browse Sites <ArrowRight size={18} />
               </Link>
               <div className="flex items-center gap-4 px-6 py-3.5 rounded-xl border border-border bg-card">
                 <div className="flex -space-x-2">
@@ -186,18 +186,17 @@ function Home() {
             Powerful link-building services designed for sustainable organic growth and maximum ROI.
           </p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {services?.map((s, i) => {
             const Icon = iconMap[s.icon as keyof typeof iconMap] ?? FileText;
-            const accents = ["bg-primary/10 text-primary", "bg-cyan-brand/10 text-cyan-brand", "bg-accent/20 text-secondary"];
+            const accents = ["bg-primary/10 text-primary", "bg-cyan-brand/10 text-cyan-brand"];
             return (
               <Link
-                to="/services/$slug"
-                params={{ slug: s.slug }}
+                to="/sites"
                 key={s.id}
                 className="group bg-card p-8 rounded-2xl border border-border hover:border-primary/30 hover:-translate-y-2 transition-all duration-300 shadow-card hover:shadow-glow"
               >
-                <div className={`size-12 rounded-xl ${accents[i % 3]} flex items-center justify-center mb-6`}>
+                <div className={`size-12 rounded-xl ${accents[i % 2]} flex items-center justify-center mb-6`}>
                   <Icon size={22} />
                 </div>
                 <h3 className="font-display text-xl font-bold mb-2">{s.name}</h3>
@@ -207,7 +206,7 @@ function Home() {
                     From <span className="font-bold text-foreground">${s.starting_price}</span>
                   </span>
                   <span className="text-primary font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
-                    Learn more <ArrowRight size={14} />
+                    Browse sites <ArrowRight size={14} />
                   </span>
                 </div>
               </Link>
@@ -277,49 +276,22 @@ function Home() {
         </div>
       </section>
 
-      {/* Reseller CTA */}
-      <section className="py-24 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="bg-primary rounded-[2.5rem] p-12 lg:p-20 flex flex-col lg:flex-row items-center gap-16 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-72 h-72 bg-accent/20 rounded-full -translate-y-1/3 translate-x-1/3" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-brand/30 rounded-full translate-y-1/3 -translate-x-1/3" />
-            <div className="lg:w-1/2 text-primary-foreground relative">
-              <span className="inline-block px-3 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-widest mb-6">
-                Agencies & Resellers
-              </span>
-              <h2 className="font-display text-4xl lg:text-5xl font-bold mb-6 text-balance">
-                Scale Your Agency Without the Overhead
-              </h2>
-              <p className="text-primary-foreground/80 text-lg mb-10">
-                Our white-label reseller program gives you wholesale pricing and automated reporting to manage
-                100+ clients with ease.
-              </p>
-              <Link
-                to="/reseller"
-                className="inline-flex items-center gap-2 bg-accent text-accent-foreground px-8 py-4 rounded-xl font-bold hover:scale-105 transition"
-              >
-                Apply for Agency Access <ArrowRight size={16} />
-              </Link>
-            </div>
-            <div className="lg:w-1/2 relative">
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 p-6 text-primary-foreground">
-                <div className="text-xs uppercase tracking-widest opacity-70 mb-3">Reseller Benefits</div>
-                <ul className="space-y-3">
-                  {[
-                    "Wholesale pricing on every service",
-                    "White-label PDF reports",
-                    "Bulk order CSV upload",
-                    "Dedicated agency account manager",
-                    "API access for integrations",
-                  ].map((f) => (
-                    <li key={f} className="flex items-center gap-3 text-sm">
-                      <Check size={16} className="text-accent shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+      {/* Final CTA */}
+      <section className="py-24">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 text-balance">
+            Ready to earn your next placement?
+          </h2>
+          <p className="text-muted-foreground text-lg mb-10 max-w-xl mx-auto">
+            Browse our publisher network or get in touch — we'll help you pick the right placements.
+          </p>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Link to="/sites" className="bg-primary text-primary-foreground px-8 py-4 rounded-xl font-bold shadow-glow hover:scale-105 transition inline-flex items-center gap-2">
+              Browse Sites <ArrowRight size={16} />
+            </Link>
+            <Link to="/contact" className="border border-border bg-card px-8 py-4 rounded-xl font-bold hover:border-primary/40 transition">
+              Talk to us
+            </Link>
           </div>
         </div>
       </section>
