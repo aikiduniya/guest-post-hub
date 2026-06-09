@@ -5,12 +5,10 @@ import { Logo } from "./Logo";
 import { useAuth } from "@/lib/auth";
 
 const nav = [
-  { to: "/services", label: "Services" },
-  { to: "/pricing", label: "Pricing" },
-  { to: "/reseller", label: "Reseller" },
-  { to: "/case-studies", label: "Case Studies" },
-  { to: "/faq", label: "FAQ" },
-  { to: "/contact", label: "Contact" },
+  { to: "/", label: "Home" },
+  { to: "/sites", label: "Sites" },
+  { to: "/about", label: "About Us" },
+  { to: "/contact", label: "Contact Us" },
 ];
 
 export function Header() {
@@ -31,6 +29,7 @@ export function Header() {
               to={n.to}
               className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
               activeProps={{ className: "text-primary" }}
+              activeOptions={{ exact: n.to === "/" }}
             >
               {n.label}
             </Link>
