@@ -1,63 +1,63 @@
-import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 
-async function assertAdmin(supabase: SupabaseClient, userId: string) {
-  const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-  if (!data?.some((r: { role: string }) => r.role === "admin")) throw new Error("Forbidden");
+// Admin permission is enforced by RLS policies (has_role(auth.uid(), 'admin')).
+// Client just calls Supabase; unauthorized users get a policy error.
+
+async function requireUserId(): Promise<string> {
+  const { data } = await supabase.auth.getUser();
+  const uid = data.user?.id;
+  if (!uid) throw new Error("Not authenticated");
+  return uid;
 }
 
-export const adminStats = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertAdmin(context.supabase as never, context.userId);
-    const [orders, posts, services] = await Promise.all([
-      context.supabase.from("orders").select("id, price, status"),
-      context.supabase.from("blog_posts").select("id, is_published"),
-      context.supabase.from("services").select("id, is_active"),
-    ]);
-    const o = orders.data ?? [];
-    return {
-      orderCount: o.length,
-      revenue: o.reduce((s, r) => s + Number(r.price), 0),
-      pending: o.filter((r) => r.status === "pending").length,
-      postsCount: (posts.data ?? []).length,
-      publishedPosts: (posts.data ?? []).filter((p) => p.is_published).length,
-      activeServices: (services.data ?? []).filter((s) => s.is_active).length,
-    };
-  });
+export async function adminStats() {
+  await requireUserId();
+  const [orders, posts, services] = await Promise.all([
+    supabase.from("orders").select("id, price, status"),
+    supabase.from("blog_posts").select("id, is_published"),
+    supabase.from("services").select("id, is_active"),
+  ]);
+  const o = orders.data ?? [];
+  return {
+    orderCount: o.length,
+    revenue: o.reduce((s, r) => s + Number(r.price), 0),
+    pending: o.filter((r) => r.status === "pending").length,
+    postsCount: (posts.data ?? []).length,
+    publishedPosts: (posts.data ?? []).filter((p) => p.is_published).length,
+    activeServices: (services.data ?? []).filter((s) => s.is_active).length,
+  };
+}
 
-export const adminListOrders = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertAdmin(context.supabase as never, context.userId);
-    const { data } = await context.supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false });
-    return data ?? [];
-  });
+export async function adminListOrders() {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
 
-export const adminUpdateOrderStatus = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ id: z.string().uuid(), status: z.enum(["pending", "in_progress", "completed", "cancelled"]) }).parse(d),
-  )
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase as never, context.userId);
-    const { error } = await context.supabase.from("orders").update({ status: data.status }).eq("id", data.id);
-    if (error) throw error;
-    return { ok: true };
-  });
+const orderStatusInput = z.object({
+  id: z.string().uuid(),
+  status: z.enum(["pending", "in_progress", "completed", "cancelled"]),
+});
 
-export const adminListPosts = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertAdmin(context.supabase as never, context.userId);
-    const { data } = await context.supabase.from("blog_posts").select("*").order("created_at", { ascending: false });
-    return data ?? [];
-  });
+export async function adminUpdateOrderStatus({ data }: { data: z.infer<typeof orderStatusInput> }) {
+  const parsed = orderStatusInput.parse(data);
+  const { error } = await supabase.from("orders").update({ status: parsed.status }).eq("id", parsed.id);
+  if (error) throw error;
+  return { ok: true };
+}
+
+export async function adminListPosts() {
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
 
 const postInput = z.object({
   id: z.string().uuid().optional(),
@@ -71,35 +71,30 @@ const postInput = z.object({
   is_published: z.boolean(),
 });
 
-export const adminSavePost = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => postInput.parse(d))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase as never, context.userId);
-    const payload = {
-      ...data,
-      cover_url: data.cover_url || null,
-      published_at: data.is_published ? new Date().toISOString() : null,
-    };
-    if (data.id) {
-      const { error } = await context.supabase.from("blog_posts").update(payload).eq("id", data.id);
-      if (error) throw error;
-    } else {
-      const { error } = await context.supabase.from("blog_posts").insert({ ...payload, author_id: context.userId });
-      if (error) throw error;
-    }
-    return { ok: true };
-  });
-
-export const adminDeletePost = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase as never, context.userId);
-    const { error } = await context.supabase.from("blog_posts").delete().eq("id", data.id);
+export async function adminSavePost({ data }: { data: z.infer<typeof postInput> }) {
+  const parsed = postInput.parse(data);
+  const userId = await requireUserId();
+  const payload = {
+    ...parsed,
+    cover_url: parsed.cover_url || null,
+    published_at: parsed.is_published ? new Date().toISOString() : null,
+  };
+  if (parsed.id) {
+    const { error } = await supabase.from("blog_posts").update(payload).eq("id", parsed.id);
     if (error) throw error;
-    return { ok: true };
-  });
+  } else {
+    const { error } = await supabase.from("blog_posts").insert({ ...payload, author_id: userId });
+    if (error) throw error;
+  }
+  return { ok: true };
+}
+
+export async function adminDeletePost({ data }: { data: { id: string } }) {
+  const parsed = z.object({ id: z.string().uuid() }).parse(data);
+  const { error } = await supabase.from("blog_posts").delete().eq("id", parsed.id);
+  if (error) throw error;
+  return { ok: true };
+}
 
 const serviceInput = z.object({
   id: z.string().uuid().optional(),
@@ -115,55 +110,47 @@ const serviceInput = z.object({
   sort_order: z.number().int().min(0).max(999),
 });
 
-export const adminSaveService = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => serviceInput.parse(d))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase as never, context.userId);
-    if (data.id) {
-      const { error } = await context.supabase.from("services").update(data).eq("id", data.id);
-      if (error) throw error;
-    } else {
-      const { error } = await context.supabase.from("services").insert(data);
-      if (error) throw error;
-    }
-    return { ok: true };
-  });
-
-export const adminListServices = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertAdmin(context.supabase as never, context.userId);
-    const { data } = await context.supabase.from("services").select("*").order("sort_order");
-    return data ?? [];
-  });
-
-export const adminDeleteService = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase as never, context.userId);
-    const { error } = await context.supabase.from("services").delete().eq("id", data.id);
+export async function adminSaveService({ data }: { data: z.infer<typeof serviceInput> }) {
+  const parsed = serviceInput.parse(data);
+  if (parsed.id) {
+    const { error } = await supabase.from("services").update(parsed).eq("id", parsed.id);
     if (error) throw error;
-    return { ok: true };
-  });
-
-export const adminGetSettings = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertAdmin(context.supabase as never, context.userId);
-    const { data } = await context.supabase.from("site_settings").select("*");
-    return data ?? [];
-  });
-
-export const adminSaveSetting = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ key: z.string().min(1).max(100), value: z.record(z.string(), z.any()) }).parse(d),
-  )
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase as never, context.userId);
-    const { error } = await context.supabase.from("site_settings").upsert({ key: data.key, value: data.value as never });
+  } else {
+    const { error } = await supabase.from("services").insert(parsed);
     if (error) throw error;
-    return { ok: true };
-  });
+  }
+  return { ok: true };
+}
+
+export async function adminListServices() {
+  const { data, error } = await supabase.from("services").select("*").order("sort_order");
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function adminDeleteService({ data }: { data: { id: string } }) {
+  const parsed = z.object({ id: z.string().uuid() }).parse(data);
+  const { error } = await supabase.from("services").delete().eq("id", parsed.id);
+  if (error) throw error;
+  return { ok: true };
+}
+
+export async function adminGetSettings() {
+  const { data, error } = await supabase.from("site_settings").select("*");
+  if (error) throw error;
+  return data ?? [];
+}
+
+const settingInput = z.object({
+  key: z.string().min(1).max(100),
+  value: z.record(z.string(), z.any()),
+});
+
+export async function adminSaveSetting({ data }: { data: z.infer<typeof settingInput> }) {
+  const parsed = settingInput.parse(data);
+  const { error } = await supabase
+    .from("site_settings")
+    .upsert({ key: parsed.key, value: parsed.value as never });
+  if (error) throw error;
+  return { ok: true };
+}
