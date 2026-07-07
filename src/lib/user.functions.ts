@@ -1,17 +1,22 @@
-import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabase } from "@/integrations/supabase/client";
 
-export const getMyOrders = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) throw error;
-    return data ?? [];
-  });
+async function requireUserId(): Promise<string> {
+  const { data } = await supabase.auth.getUser();
+  const uid = data.user?.id;
+  if (!uid) throw new Error("Not authenticated");
+  return uid;
+}
+
+export async function getMyOrders() {
+  await requireUserId();
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
 
 const orderInput = z.object({
   service_id: z.string().uuid(),
@@ -22,29 +27,28 @@ const orderInput = z.object({
   price: z.number().min(0).max(100000),
 });
 
-export const createOrder = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => orderInput.parse(d))
-  .handler(async ({ data, context }) => {
-    const { error, data: row } = await context.supabase
-      .from("orders")
-      .insert({ ...data, user_id: context.userId })
-      .select()
-      .single();
-    if (error) throw error;
-    return row;
-  });
+export async function createOrder({ data }: { data: z.infer<typeof orderInput> }) {
+  const parsed = orderInput.parse(data);
+  const userId = await requireUserId();
+  const { data: row, error } = await supabase
+    .from("orders")
+    .insert({ ...parsed, user_id: userId })
+    .select()
+    .single();
+  if (error) throw error;
+  return row;
+}
 
-export const getMyProfile = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data } = await context.supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", context.userId)
-      .maybeSingle();
-    return data;
-  });
+export async function getMyProfile() {
+  const userId = await requireUserId();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
 
 const profileInput = z.object({
   full_name: z.string().trim().max(100).optional(),
@@ -52,13 +56,12 @@ const profileInput = z.object({
   website: z.string().trim().max(255).optional(),
 });
 
-export const updateMyProfile = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => profileInput.parse(d))
-  .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("profiles")
-      .upsert({ id: context.userId, ...data });
-    if (error) throw error;
-    return { ok: true };
-  });
+export async function updateMyProfile({ data }: { data: z.infer<typeof profileInput> }) {
+  const parsed = profileInput.parse(data);
+  const userId = await requireUserId();
+  const { error } = await supabase
+    .from("profiles")
+    .upsert({ id: userId, ...parsed });
+  if (error) throw error;
+  return { ok: true };
+}

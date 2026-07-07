@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/layout/AppShell";
 import { adminStats } from "@/lib/admin.functions";
 import { ShoppingBag, DollarSign, Clock, FileText, Package } from "lucide-react";
@@ -11,8 +10,7 @@ export const Route = createFileRoute("/_authenticated/admin/")({
 });
 
 function AdminHome() {
-  const fetchStats = useServerFn(adminStats);
-  const { data } = useQuery({ queryKey: ["admin-stats"], queryFn: () => fetchStats() });
+  const { data } = useQuery({ queryKey: ["admin-stats"], queryFn: () => adminStats() });
 
   const cards = [
     { Icon: ShoppingBag, label: "Total Orders", val: data?.orderCount ?? 0, c: "bg-primary/10 text-primary" },

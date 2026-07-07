@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/layout/AppShell";
@@ -26,11 +25,8 @@ type PostRow = {
 };
 
 function AdminPosts() {
-  const list = useServerFn(adminListPosts);
-  const save = useServerFn(adminSavePost);
-  const del = useServerFn(adminDeletePost);
   const qc = useQueryClient();
-  const { data: posts } = useQuery({ queryKey: ["admin-posts"], queryFn: () => list() });
+  const { data: posts } = useQuery({ queryKey: ["admin-posts"], queryFn: () => adminListPosts() });
   const [editing, setEditing] = useState<PostRow | null>(null);
   const [open, setOpen] = useState(false);
   const [coverUrl, setCoverUrl] = useState<string>("");
@@ -69,7 +65,7 @@ function AdminPosts() {
     mutationFn: (d: {
       id?: string; slug: string; title: string; excerpt?: string; content: string;
       category: string; tags: string[]; cover_url?: string; is_published: boolean;
-    }) => save({ data: d }),
+    }) => adminSavePost({ data: d }),
     onSuccess: () => {
       toast.success("Saved");
       qc.invalidateQueries({ queryKey: ["admin-posts"] });
@@ -79,7 +75,7 @@ function AdminPosts() {
     onError: (e: Error) => toast.error(e.message),
   });
   const delM = useMutation({
-    mutationFn: (id: string) => del({ data: { id } }),
+    mutationFn: (id: string) => adminDeletePost({ data: { id } }),
     onSuccess: () => {
       toast.success("Deleted");
       qc.invalidateQueries({ queryKey: ["admin-posts"] });

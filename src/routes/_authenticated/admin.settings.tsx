@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
@@ -14,13 +13,11 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
 });
 
 function AdminSettings() {
-  const list = useServerFn(adminGetSettings);
-  const save = useServerFn(adminSaveSetting);
   const qc = useQueryClient();
-  const { data } = useQuery({ queryKey: ["admin-settings"], queryFn: () => list() });
+  const { data } = useQuery({ queryKey: ["admin-settings"], queryFn: () => adminGetSettings() });
 
   const m = useMutation({
-    mutationFn: (d: { key: string; value: Record<string, unknown> }) => save({ data: d }),
+    mutationFn: (d: { key: string; value: Record<string, unknown> }) => adminSaveSetting({ data: d }),
     onSuccess: (_r, vars) => {
       toast.success("Settings saved");
       qc.invalidateQueries({ queryKey: ["admin-settings"] });

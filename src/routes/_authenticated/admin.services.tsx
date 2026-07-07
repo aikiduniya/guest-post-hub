@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/layout/AppShell";
@@ -27,11 +26,8 @@ type SvcRow = {
 };
 
 function AdminServices() {
-  const list = useServerFn(adminListServices);
-  const save = useServerFn(adminSaveService);
-  const del = useServerFn(adminDeleteService);
   const qc = useQueryClient();
-  const { data: services } = useQuery({ queryKey: ["admin-services"], queryFn: () => list() });
+  const { data: services } = useQuery({ queryKey: ["admin-services"], queryFn: () => adminListServices() });
   const [editing, setEditing] = useState<SvcRow | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -40,7 +36,7 @@ function AdminServices() {
       id?: string; slug: string; name: string; category: string; short_description: string;
       long_description?: string; starting_price: number; features: string[]; icon?: string;
       is_active: boolean; sort_order: number;
-    }) => save({ data: d }),
+    }) => adminSaveService({ data: d }),
     onSuccess: () => {
       toast.success("Saved");
       qc.invalidateQueries({ queryKey: ["admin-services"] });
@@ -51,7 +47,7 @@ function AdminServices() {
     onError: (e: Error) => toast.error(e.message),
   });
   const delM = useMutation({
-    mutationFn: (id: string) => del({ data: { id } }),
+    mutationFn: (id: string) => adminDeleteService({ data: { id } }),
     onSuccess: () => {
       toast.success("Deleted");
       qc.invalidateQueries({ queryKey: ["admin-services"] });
