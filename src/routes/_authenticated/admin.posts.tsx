@@ -65,7 +65,7 @@ function AdminPosts() {
     mutationFn: (d: {
       id?: string; slug: string; title: string; excerpt?: string; content: string;
       category: string; tags: string[]; cover_url?: string; is_published: boolean;
-    }) => save({ data: d }),
+    }) => adminSavePost({ data: d }),
     onSuccess: () => {
       toast.success("Saved");
       qc.invalidateQueries({ queryKey: ["admin-posts"] });
@@ -75,7 +75,7 @@ function AdminPosts() {
     onError: (e: Error) => toast.error(e.message),
   });
   const delM = useMutation({
-    mutationFn: (id: string) => del({ data: { id } }),
+    mutationFn: (id: string) => adminDeletePost({ data: { id } }),
     onSuccess: () => {
       toast.success("Deleted");
       qc.invalidateQueries({ queryKey: ["admin-posts"] });
