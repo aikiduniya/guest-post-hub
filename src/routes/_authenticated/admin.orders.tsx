@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { AppShell } from "@/components/layout/AppShell";
 import { adminListOrders, adminUpdateOrderStatus } from "@/lib/admin.functions";
@@ -11,13 +10,11 @@ export const Route = createFileRoute("/_authenticated/admin/orders")({
 });
 
 function AdminOrders() {
-  const list = useServerFn(adminListOrders);
-  const upd = useServerFn(adminUpdateOrderStatus);
   const qc = useQueryClient();
-  const { data: orders } = useQuery({ queryKey: ["admin-orders"], queryFn: () => list() });
+  const { data: orders } = useQuery({ queryKey: ["admin-orders"], queryFn: () => adminListOrders() });
 
   const m = useMutation({
-    mutationFn: (d: { id: string; status: "pending" | "in_progress" | "completed" | "cancelled" }) => upd({ data: d }),
+    mutationFn: (d: { id: string; status: "pending" | "in_progress" | "completed" | "cancelled" }) => adminUpdateOrderStatus({ data: d }),
     onSuccess: () => {
       toast.success("Status updated");
       qc.invalidateQueries({ queryKey: ["admin-orders"] });
